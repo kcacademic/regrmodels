@@ -1,0 +1,85 @@
+---
+title: "Impact of Transmission on Fuel Efficiency"
+author: "Kumar Chandrakant"
+date: "January 21, 2016"
+output: html_document
+---
+
+###Executive Summary
+The objective of this analysis is to establish if transmission type (automatic vs manual) has any statistical significance on the miles per gallon (mpg) of the motor vehicles. We will use the dataset "mtcars" for this analysis which is present in R by default.
+
+###Exploratory Analysis
+We will begin by loading the "mtcars" dataset in the environment and perform some exploratory analysis.
+```{r echo=FALSE}
+data(mtcars)
+```
+The data frame consists of 32 rows of data with 11 variables. 
+```{r}
+dim(mtcars)
+```
+A quick check of the data franme revealks that all the variables are of type num. We will convert the variable transmission (am) of type factor.
+```{r}
+mtcars$am <- as.factor(mtcars$am)
+```
+As clearly evident from the boxplot in annexure the mean miles per gallon (mpg) for manual transmission is higher than that for automatic transmission. We will proceed to see if this observation can be corelated statistically as well.
+
+###Model Selection
+To select a suitable model for the data we will perform the exercise of reducing the model whereby we will start with all predictors and in step wise manner remove the ones with highest p-value which indicates least statistical significance of the predictor in the model. Refer to annexure for details.
+
+We begin as said with a model with all predictors.
+```{r}
+fit <- lm(mpg ~ ., data = mtcars)
+summary(fit)$r.squared
+```
+After a series of steps removing less significant predictors we reach the model below.
+```{r}
+fit <- lm(mpg ~ .-carb-gear-cyl-vs-drat-disp-hp, data = mtcars)
+summary(fit)$r.squared
+```
+As we can see that retaining just few predictors the final model is able to explain most of the variance as suggested by the Adjusted R-Squared value.
+
+###Diagnostic Analysis
+Next we will analyse if the chosen model has any problem like heteroskedasticity using the residual plot. The plot of residuals as present in the annexure for the chosen model suggest no specific pattern (random dispersion around horizontal axis) and hence looks suitable to be used.
+
+###Statistical Inference
+Let us now use the selected model to make the statistical inference using the coefficients of predictors and uncertainty involved.
+
+- Interpretation of Coefficients
+
+Let us examine the coefficients of the regressors as present in the annexure. The coefficient of the intercept suggests the mean mpg for automatic transmission "Intercept" and coefficients of the other regressors relative to this. Thus sum of coefficient of intercept and coefficient of regressor "am1"" gives the mean mpg for manual transmission.
+
+- Confidence Interval of Slope (Uncertainty)
+
+We will calculate the 95% confidence interval for the coefficient of the predictor "am1" to understand the variability involved.
+```{r}
+confint(fit, 'am1', level=0.95)
+```
+This shows that we are 95% confident that the slope will lie in the above range. Also as zero is not in this range we are 95% confident that manula transmission gives better miles per gallon compared to automatic transmission.
+
+###Conclusion
+- Is an automatic or manual transmission better for MPG? ==> The mpg for automatic transmission is ```r summary(fit)$coef[1,1]``` while that for manual transmission is ```r summary(fit)$coef[1,1]+summary(fit)$coef[4,1]```.
+
+- Quantify the MPG difference between automatic and manual transmissions. ==> The difference in mpg between automatic and manula transmission is ```r summary(fit)$coef[4,1]```.
+
+##Annexure
+###BoxPlot of MPG vs. Transmission
+```{r fig.height=4}
+boxplot(mpg ~ am, data = mtcars, xlab = "transmission")
+```
+
+###Initial and Final Model as part of Selection
+Initial Model with all predictors.
+```{r}
+fit <- lm(mpg ~ ., data = mtcars)
+summary(fit)
+```
+Final model after a series of steps removing less significant predictors.
+```{r}
+fit <- lm(mpg ~ .-carb-gear-cyl-vs-drat-disp-hp, data = mtcars)
+summary(fit)
+```
+
+###Plot of Residuals for the Final Model
+```{r  fig.height=4}
+plot(fit, which=1)
+```
